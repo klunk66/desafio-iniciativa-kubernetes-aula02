@@ -36,6 +36,7 @@ jobs:
             emersonklunk/rotten-potatoes:latest
             emersonklunk/rotten-potatoes:v${{ github.RUN_NUMBER }}
   CD:
+    needs: [CI]
     runs-on: ubuntu-latest
     
     steps: 
@@ -45,3 +46,4 @@ jobs:
         with:
           method: kubeconfig
           kubeconfig: ${{ K8S_KUBECONFIG }}
+#
