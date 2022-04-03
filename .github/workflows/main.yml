@@ -51,4 +51,4 @@ jobs:
         with:
           images: emersonklunk/rotten-potatoes:v${{ github.RUN_NUMBER }}
           manifests: |
-            k8s/deployment.yaml
+            rotten-potatoes/k8s/deployment.yaml
