@@ -1,0 +1,54 @@
+
+name: CI-CD
+
+on:
+  push:
+    branches: [ master ]
+
+  workflow_dispatch:
+
+jobs:
+  CI:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run a one-line script
+        run: echo Hello, world!
+#
+      - name: Run a multi-line script
+        run: |
+          echo Add other actions to build,
+          echo test, and deploy your project.
+      - name: Docker Login
+        uses: docker/login-action@v1.14.1
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_PWD }}
+      - name: Docker Build and Push
+        uses: docker/build-push-action@v2.10.0 
+        with: 
+          context: ./rotten-potatoes/src
+          file: ./rotten-potatoes/src/Dockerfile
+          push: true
+          tags: |
+            emersonklunk/rotten-potatoes:latest
+            emersonklunk/rotten-potatoes:v${{ github.RUN_NUMBER }}
+  CD:
+    needs: [CI]
+    runs-on: ubuntu-latest
+    
+    steps: 
+      - uses: actions/checkout@v3
+      - name: Kubernetes Set Context
+        uses: Azure/k8s-set-context@v2
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.K8S_KUBECONFIG }}
+      - name: Deploy to Kubernetes cluster
+        uses: Azure/k8s-deploy@v3.0
+        with:
+          images: emersonklunk/rotten-potatoes:v${{ github.RUN_NUMBER }}
+          manifests: |
+            rotten-potatoes/k8s/deployment.yaml
